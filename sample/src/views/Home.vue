@@ -24,7 +24,7 @@ export default {
   },
   methods: {
     getTestData() {
-      fetch('http://localhost:5000/test')
+      fetch('http://91.132.102.83/test')
       .then( (response) => {
         this.str = response.json()
         console.log(this.str)
