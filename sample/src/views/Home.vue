@@ -33,7 +33,13 @@ export default {
     },
 
     getVkSecretCode(){
-      fetch('https://oauth.vk.com/authorize?client_id=8099115&display=popup&redirect_uri=http://91.132.102.83/test/vk_test&scope=wall&response_type=code')
+      fetch('https://oauth.vk.com/authorize?client_id=8099115&display=popup&redirect_uri=http://91.132.102.83/test/vk_test&scope=wall&response_type=code',
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
+	mode: 'no-cors'
+      })
       .then(response => console.log(response))
     }
   }
