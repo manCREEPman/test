@@ -4,7 +4,9 @@
     <HelloWorld msg="Welcome to Your Vue.js App"/>
     <input type="button" value="knopka" @click="getTestData">
     <div>{{ this.str }}</div>
-    <input type="button" value="vk test" @click="getVkSecretCode">
+    <input type="button" value="vk test" @click="getTestDbData">
+    <div class="green">{{ this.db_obj.id }}</div>
+    <div class="blue">{{ this.db_obj.name }}</div>
   </div>
 </template>
 
@@ -18,6 +20,10 @@ export default {
     return {
       str: {
         type: String
+      },
+      db_obj: {
+        id: Number,
+        name: String
       }
     }
   },
@@ -26,22 +32,28 @@ export default {
   },
   methods: {
     getTestData() {
-      fetch('http://91.132.102.83/test')
+      fetch('http://91.132.102.83/api/first')
       .then(response => response.json())
       .then(data => this.str = data.data)
       .catch(error => console.log(error))
     },
 
-    getVkSecretCode(){
-      fetch('https://oauth.vk.com/authorize?client_id=8099115&display=popup&redirect_uri=http://91.132.102.83/test/vk_test&scope=wall&response_type=code',
-      {
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        },
-	mode: 'no-cors'
-      })
-      .then(response => console.log(response))
+    getTestDbData() {
+      fetch('http://91.132.102.83/api/test_db_api')
+      .then(response => response.json())
+      .then(data => this.db_obj = data)
+      .catch(error => this.db_obj = {id: 666, name: 'X_x'})
     }
   }
 }
 </script>
+
+<style>
+  .green {
+    color: green;
+  }
+
+  .blue {
+    color: blue;
+  }
+</style>
