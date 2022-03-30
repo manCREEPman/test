@@ -1,15 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:PASSWORD@localhost/test'
-
-db = SQLAlchemy(app)
+db = SQLAlchemy()
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(64), nullable=False)
-    password = db.Column(db.String(64), nullable=False)
+    login = db.Column(db.String(160), nullable=False)
+    password = db.Column(db.String(160), nullable=False)
     vk_user_id = db.Column(db.String(64), nullable=False)
 
     def __repr__(self):
@@ -101,5 +97,3 @@ class Post_attachement_gtt(db.Model):
     def __repr__(self):
         return f"<post {self.order}>"
 
-if __name__ == "__main__":
-    app.run(debug=True)

@@ -2,6 +2,7 @@ from json import load
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from models import db, Test
+from .Models.models import db as db1
 import traceback
 
 app = Flask('new1')
