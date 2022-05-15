@@ -45,6 +45,7 @@ class Post_attachement_image(db.Model):
     attachement_id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('post.post_id'))
     image = db.Column(db.LargeBinary, nullable=False)
+    tag = db.Column(db.String(64))
 
     def __repr__(self):
         return f"<post {self.attachement_id}: {self.post_id}>"
@@ -62,6 +63,7 @@ class Uploaded_image_gtt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     num = db.Column(db.Integer, nullable=False)
     image = db.Column(db.LargeBinary, nullable=False)
+    tag = db.Column(db.String(64))
 
     def __repr__(self):
         return f"<post {self.num}>"
@@ -83,6 +85,7 @@ class Post_attachement_image_gtt(db.Model):
     post_gtt_id = db.Column(db.Integer, nullable=False)
     order = db.Column(db.Integer, nullable=False)
     image = db.Column(db.LargeBinary, nullable=False)
+    tag = db.Column(db.String(64))
 
     def __repr__(self):
         return f"<post {self.order}>"
