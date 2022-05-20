@@ -10,7 +10,7 @@ const APIFetcher = axios.create({
     baseURL: baseURL,
     headers: {
         'Access-Control-Allow-Origin': '*'
-    }
+    },
 })
 
 export { APIFetcher, DEBUG }

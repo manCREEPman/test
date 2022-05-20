@@ -1,12 +1,24 @@
+from enum import unique
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class Test(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+    def to_dict(self):
+        return dict(id=self.id, name=self.name)
+
 class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(160), nullable=False)
-    password = db.Column(db.String(160), nullable=False)
-    vk_user_id = db.Column(db.String(64), nullable=False)
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    login = db.Column(db.String(160), nullable=False, unique=True)
+    password = db.Column(db.String(260), nullable=False)
+    vk_user_id = db.Column(db.String(64), nullable=True)
 
     def __repr__(self):
         return f"<user {self.user_id}>"

@@ -1,14 +1,24 @@
+import sys
+sys.path.append('./') 
+
 from json import load
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-from models import db, Test
-from .Models.models import db as db1
 import traceback
+
+from flask import Flask, jsonify, request, make_response
+from flask_cors import CORS
+
+from Models.models import db
+from Models.models import Test
+from blueprints.auth import auth
+# , User, Group, User_group, Post, Post_attachement_image, \
+# Post_attachement, Uploaded_image_gtt, Post_gtt, Post_attachement_image_gtt, Post_attachement_gtt
 
 
 app = Flask('new1')
-CORS(app)
+app.register_blueprint(auth, url_prefix='/api/auth')
+CORS(app, supports_credentials=True)
 debug_state = False
+
 
 try:
     f = open('./config.json', 'r')
@@ -20,9 +30,11 @@ try:
     else:
         db_str = config_settings.get('db_connection')
     app.config['SQLALCHEMY_DATABASE_URI'] = db_str
+    app.config['SECRET_KEY'] = config_settings.get('secret_key')
     db.init_app(app)
 except:
     print(traceback.format_exc())
+
 
 @app.route('/api/init_debug_db')
 def init_debug_db():
@@ -36,7 +48,7 @@ def init_debug_db():
             db.session.commit()
         return jsonify({'success': 'initialization has completed'})
     except:
-        # traceback_log()
+        print(traceback.format_exc())
         return jsonify({'error': 'fuck'})
 
 
@@ -45,19 +57,10 @@ def test_db_api():
     test = Test.query.all()[0].to_dict()
     return jsonify(test)
 
+
 @app.route('/api/first')
 def index():
     return jsonify({'data': '^____________^'})
-
-
-@app.route('/api/register')
-def register():
-    pass
-
-
-@app.route('/api/login')
-def login():
-    pass
 
 
 if __name__ == "__main__":

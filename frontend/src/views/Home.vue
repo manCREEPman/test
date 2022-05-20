@@ -16,7 +16,7 @@
 
 <script>
 import Navigation from '@/components/Navigation.vue'
-import { APIFetcher, DEBUG } from '@/api'
+import { APIFetcher } from '@/api'
 
 export default {
   name: 'Home',
@@ -29,7 +29,8 @@ export default {
       db_obj: {
         id: 0,
         name: ''
-      }
+      },
+      name: 'Home'
     }
   },
   created: function() {

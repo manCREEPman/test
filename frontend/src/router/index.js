@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import AuthorizationForm from '../components/AuthorizationForm.vue'
 
 Vue.use(VueRouter)
 
@@ -12,10 +13,15 @@ const routes = [
   },
   {
     path: '/groups',
-    name: 'About',
+    name: 'Groups',
     component: function () {
       return import('../views/Groups.vue')
     }
+  },
+  {
+    path: '/auth',
+    name: 'Auth',
+    component: AuthorizationForm
   }
 ]
 

@@ -19,7 +19,6 @@
             dense
         >
             <v-list-item-group
-            v-model="group"
             active-class="deep-purple--text text--accent-4"
             >
             <v-list-item to="/">
@@ -33,8 +32,16 @@
                 <v-list-item-icon>
                 <v-icon>mdi-account-group-outline</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>About</v-list-item-title>
+                <v-list-item-title>Groups</v-list-item-title>
             </v-list-item>
+
+            <v-list-item to="/auth">
+                <v-list-item-icon>
+                <v-icon>mdi-account-group-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Registration</v-list-item-title>
+            </v-list-item>
+
             </v-list-item-group>
         </v-list>
         </v-navigation-drawer>
