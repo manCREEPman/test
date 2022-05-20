@@ -210,11 +210,17 @@ class AutoPoster:
 
     def get_group_list(self, id):
         '''
-        Возвращает список числовых индентификаторов групп, где пользователь является админом, редактокром, модератором
-        или рекламщиком.
+        Получение информации о группах, где пользователь является админом.
 
         :param id: ссылка на пользователя
-        :return:
+        :return: список словарей вида
+                 admin_type - тип дамина. ["moderator", "editor", "administrator"]
+                 ava_url - ссылка на аватар группы в размере 100х100px
+                 group_id - числовой индетификатор сообщества
+                 group_type - тип группы. ["group", "page", "event"]
+                 name - название сообщества
+                 short_name - короткий адрес сообщества
+
         '''
 
         params = {
@@ -223,7 +229,28 @@ class AutoPoster:
         }
 
         group_list = self.vk.groups.get(**params)['items']
-        return group_list
+
+        params = {
+            'group_ids': group_list,
+        }
+
+        group_info = self.vk.groups.getById(**params)
+
+        admin_level = { 1: "moderator", 2: "editor", 3: "administrator"}
+
+        res_info = []
+        for info in group_info:
+            res = {}
+            res['group_id'] = info['id']
+            res['name'] = info['name']
+            res['short_name'] = info['screen_name']
+            res['ava_url'] = info['photo_100']
+            res['admin_type'] = admin_level[info['admin_level']]
+            res['group_type'] = info['type']
+            res_info.append(res)
+
+
+        return res_info
 
     def get_publication(self, domain='', offset=0, count=1, post_id=''):
         '''
