@@ -25,21 +25,28 @@
                 <v-list-item-icon>
                 <v-icon>mdi-home</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>Home</v-list-item-title>
+                <v-list-item-title>Главная</v-list-item-title>
             </v-list-item>
 
             <v-list-item to="/groups">
                 <v-list-item-icon>
                 <v-icon>mdi-account-group-outline</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>Groups</v-list-item-title>
+                <v-list-item-title>Группы</v-list-item-title>
             </v-list-item>
 
             <v-list-item to="/auth">
                 <v-list-item-icon>
                 <v-icon>mdi-account-group-outline</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>Registration</v-list-item-title>
+                <v-list-item-title>Регистрация</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item to="/upload">
+                <v-list-item-icon>
+                <v-icon>mdi-account-group-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Загрузка изображений</v-list-item-title>
             </v-list-item>
 
             </v-list-item-group>

@@ -22,6 +22,13 @@ const routes = [
     path: '/auth',
     name: 'Auth',
     component: AuthorizationForm
+  },
+  {
+    path: '/upload',
+    name: 'UploadedPictures',
+    component: function () {
+      return import('../views/UploadedPictures.vue')
+    }
   }
 ]
 
