@@ -6,19 +6,23 @@ import traceback
 
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
+from flask_migrate import Migrate
 
 from Models.models import db
 from Models.models import Test
 from blueprints.auth import auth
+from blueprints.vk_auth import vk_auth
+from VKApi.VkAccessStorage import vk_storage
 # , User, Group, User_group, Post, Post_attachement_image, \
 # Post_attachement, Uploaded_image_gtt, Post_gtt, Post_attachement_image_gtt, Post_attachement_gtt
 
 
 app = Flask('new1')
 app.register_blueprint(auth, url_prefix='/api/auth')
+app.register_blueprint(vk_auth, url_prefix='/api/vk_auth')
 CORS(app, supports_credentials=True)
 debug_state = False
-
+migrate = Migrate(app, db)
 
 try:
     f = open('./config.json', 'r')
@@ -32,25 +36,10 @@ try:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_str
     app.config['SECRET_KEY'] = config_settings.get('secret_key')
     db.init_app(app)
+
+    vk_storage.server_vk_objects_init()
 except:
     print(traceback.format_exc())
-
-
-@app.route('/api/init_debug_db')
-def init_debug_db():
-    try:
-        if debug_state:
-            db.create_all()
-            rec1 = Test(1, 'suck')
-            rec2 = Test(2, 'fuck')
-            db.session.add(rec1)
-            db.session.add(rec2)
-            db.session.commit()
-        return jsonify({'success': 'initialization has completed'})
-    except:
-        print(traceback.format_exc())
-        return jsonify({'error': 'fuck'})
-
 
 @app.route('/api/test_db_api')
 def test_db_api():

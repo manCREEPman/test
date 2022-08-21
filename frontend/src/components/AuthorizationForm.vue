@@ -131,10 +131,13 @@ export default {
                       console.log(auth_obj)
                       let loginStatus = auth_obj.auth
                       let loginMessage = auth_obj.message
+                      let vkAuthState = auth_obj.vk_auth
+
                       if(loginStatus) {
                         this.$store.dispatch('changeAuthState', loginStatus)
+                        this.$store.dispatch('changeVKAuthState', vkAuthState)
                         console.log('inside')
-                        console.log(this.$store.getters.authenticated)
+                        console.log('main auth: ' + this.$store.getters.authenticated + ' vk auth: ' + this.$store.getters.vkAuthenticated)
                       }
                       else {
                         this.authErrorMessage = loginMessage

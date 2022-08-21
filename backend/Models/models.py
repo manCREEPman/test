@@ -18,7 +18,7 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     login = db.Column(db.String(160), nullable=False, unique=True)
     password = db.Column(db.String(260), nullable=False)
-    vk_user_id = db.Column(db.String(64), nullable=True)
+    vk_login = db.Column(db.String(64), nullable=True)
 
     def __repr__(self):
         return f"<user {self.user_id}>"
