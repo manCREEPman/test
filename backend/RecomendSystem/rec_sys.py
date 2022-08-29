@@ -50,6 +50,19 @@ class RecSys:
 
     def __init__(self) -> None:
         self.__objects = {}
+    
+    def init_user_object(self, vk_login, obj):
+        self.__objects.setdefault(vk_login, obj)
+
+    def dump_user_object(self, vk_login, filename):
+        with open(f'./{filename}.json', 'w') as f:
+            json.dump(self.__objects.get(vk_login), f, indent='\t')
+            f.close()
+    
+    def load_user_object(self, vk_login, filename):
+        with open(f'./{filename}.json', 'r') as f:
+            self.__objects[vk_login] = json.load(f)
+            f.close()
 
     def time_to_seconds(self, time_str: str) -> int:
         time_list = time_str.split(':')
@@ -219,7 +232,8 @@ class RecSys:
         value = random.randint(1, 100)
         return 1 <= value <= percent
         
-    def sort_islands_by_rating(self, obj: dict):
+    def sort_islands_by_rating(self, vk_login):
+        obj = self.__objects[vk_login]
         for tag in obj.keys():
             islands_count = len(obj[tag]['islands'])
             for i in range(islands_count):
@@ -254,15 +268,63 @@ class RecSys:
         PERCENT = 70
         CHANSE_OF_BORDER_TIME = 50
         DENSITY_BORDER = 0.5
-        NEW_POSTS_COUNT_TO_UNION = 10
+        NEW_POSTS_COUNT_TO_UNION = 5
 
         obj = self.__objects.get(vk_login)
-        if obj:
-            to_new = False
-            index = 0
+        to_new = False
+        
+        def save_new_island(index):
+            if to_new:
+                print(f'Переприсваивается новый остров 1. Будет под номером {obj[post_type]["upper_name"]}')
+                island = {
+                    'number': obj[post_type]['upper_name'],
+                    'posts': [],
+                    'new_post_count': 0,
+                    'new_time': 0,
+                    'new_state': False
+                }
+                obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
 
+                for post in obj[post_type]['new_islands'][index]['posts']:
+                    inserting_post = self.create_real_post()
+                    for key in post.keys():
+                        inserting_post[key] = post[key]
+                    inserting_post['new_state'] = False
+                    island['posts'].append(inserting_post)
+                
+                island['avg_rating'] = self.mean_of_posts(island['posts'], 'rating')
+                island['posts'].sort(key=lambda x: x['time'])
+
+                obj[post_type]['islands'].append(island)
+                obj[post_type]['new_islands'].pop(index)
+            else:
+                new_avg_rating = self.mean_of_posts(obj[post_type]['islands'][index]['posts'], 'rating')
+                old_avg_rating = obj[post_type]['islands'][index].get('avg_rating')
+                print(f'Сравнение двух средних рейтингов. До добавления 5 новых постов: {old_avg_rating}. После {new_avg_rating}')
+                if new_avg_rating < old_avg_rating:
+                    deleting_posts = []
+                    for i in range(len(obj[post_type]['islands'][index]['posts'])):
+                        if obj[post_type]['islands'][index]['posts'][i]['rating'] < old_avg_rating and obj[post_type]['islands'][index]['posts'][i]['new_state']:
+                            deleting_posts.append(i)
+                    if len(deleting_posts):
+                        for i in range(len(obj[post_type]['islands'][index]['posts']) - 1, -1, -1):
+                            if i in deleting_posts:
+                                obj[post_type]['islands'][index]['posts'].pop(i)
+                    new_new_avg_rating = self.mean_of_posts(obj[post_type]['islands'][index]['posts'], 'rating')
+                    obj[post_type]['islands'][index].setdefault('avg_rating', new_new_avg_rating)
+                for i in range(len(obj[post_type]['islands'][index]['posts'])):
+                    if obj[post_type]['islands'][index]['posts'][i].get('new_state', False):
+                        obj[post_type]['islands'][index]['posts'][i]['new_state'] = False
+                obj[post_type]['islands'][index]['new_post_count'] = 0
+                obj[post_type]['islands'][index]['posts'].sort(key=lambda x: x['time'])
+
+        if obj:
+            index = 0
+            min_t = 0
+            max_t = 0
             new_islands_count = len(obj[post_type]['new_islands'])
             islands_count = len(obj[post_type]['islands'])
+
             if new_islands_count > 0:
                 to_new = True
                 # выбираем новый остров
@@ -277,7 +339,13 @@ class RecSys:
                 else:
                     index = len(obj[post_type]['islands']) - 2
             elif islands_count <= 1 and not to_new:
+                to_new = True
                 if islands_count == 1:
+                    print('Создание 2 новых островов на основе имеющегося')
+                    max_t = obj[post_type]['islands'][0]['posts'][len(obj[post_type]['islands'][0]['posts']) - 1]['time']
+                    min_t = obj[post_type]['islands'][0]['posts'][0]['time']
+                    s = random.randint(1, 5)
+
                     island = {
                         'number': obj[post_type]['upper_name'],
                         'posts': [],
@@ -287,6 +355,7 @@ class RecSys:
                     }
                     obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
                     obj[post_type]['new_islands'].append(island)
+                    print(f'остров {island["number"]}')
 
                     island = {
                         'number': obj[post_type]['upper_name'],
@@ -297,39 +366,74 @@ class RecSys:
                     }
                     obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
                     obj[post_type]['new_islands'].append(island)
+                    print(f'остров {island["number"]}')
 
+                    index = random.randint(0, 1)
 
-                    # ===================================================================
-            
+                elif islands_count == 0:
+                    print('создание островов с нуля')
+                    time = 12 * HOUR
+                    s = random.randint(1, 5)
 
-                    island_base_time = obj[post_type]['new_islands'][0]['new_time']
-                    if self.make_choise(CHANSE_OF_BORDER_TIME):
-                        min_t = self.get_correct_time_addition(island_base_time, 5 * MINUTE, -1)
-                        max_t = island_base_time
-                    else:
-                        min_t = island_base_time
-                        max_t = self.get_correct_time_addition(island_base_time, 5 * MINUTE)
+                    island = {
+                        'number': obj[post_type]['upper_name'],
+                        'posts': [],
+                        'new_post_count': 0,
+                        'new_time': time,
+                        'new_state': True
+                    }
+                    obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
+                    obj[post_type]['new_islands'].append(island)
 
-                    new_time = random.randint(min_t, max_t)
-                    new_post = self.create_real_post()
-                    new_post['time'] = new_time
-                    new_post.setdefault('new_state', True)
-                    obj[post_type]['new_islands'][0]['posts'].append(new_post)
-                    obj[post_type]['new_islands'][0]['new_posts'] = obj[post_type]['new_islands'][0]['new_posts'] + 1
+                    island = {
+                        'number': obj[post_type]['upper_name'],
+                        'posts': [],
+                        'new_post_count': 0,
+                        'new_time': self.get_correct_time_addition(time, s * HOUR),
+                        'new_state': True
+                    }
+                    obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
+                    obj[post_type]['new_islands'].append(island)
 
+                    island = {
+                        'number': obj[post_type]['upper_name'],
+                        'posts': [],
+                        'new_post_count': 0,
+                        'new_time': self.get_correct_time_addition(time, s * HOUR, -1),
+                        'new_state': True
+                    }
+                    obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
+                    obj[post_type]['new_islands'].append(island)
+                    
+                    index = random.randint(0, 2)
 
-            islands_count = len(obj[post_type]['islands'])
-
-            if islands_count > 1:
-
-                top1_island_posts = None
-                substraction_index = 0
-                if self.make_choise(PERCENT):
-                    substraction_index = 1
+            if to_new:
+                time = obj[post_type]['new_islands'][index]['new_time']
+                if self.make_choise(50):
+                    max_t = time
+                    min_t = self.get_correct_time_addition(time, 5 * MINUTE, -1)
                 else:
-                    substraction_index = 2
+                    min_t = time
+                    max_t = self.get_correct_time_addition(time, 5 * MINUTE)
+                new_time = random.randint(min_t, max_t)
+                new_post = self.create_real_post()
+                new_post['time'] = new_time
+                new_post.setdefault('new_state', True)
 
-                top1_island_posts = obj[post_type]['islands'][islands_count - substraction_index]['posts']
+                print(f'Новый пост 1. время {new_post["time"]}, рейтинг {new_post["rating"]}')
+                print(f'Искать в {post_type} под номером {obj[post_type]["new_islands"][index]["number"]}')
+
+                obj[post_type]['new_islands'][index]['posts'].append(new_post)
+                obj[post_type]['new_islands'][index]['new_post_count'] = obj[post_type]['new_islands'][index]['new_post_count'] + 1
+
+                obj[post_type]['new_islands'].sort(key=lambda x: x['new_post_count'])
+
+                if obj[post_type]['new_islands'][index]['new_post_count'] >= NEW_POSTS_COUNT_TO_UNION:
+                    save_new_island(index)
+                
+                obj[post_type]['new_islands'].sort(key=lambda x: x['new_post_count'])
+            else:
+                top1_island_posts = obj[post_type]['islands'][index]['posts']
 
                 density = self.get_posts_density(top1_island_posts)
                     
@@ -348,86 +452,50 @@ class RecSys:
                 new_post['time'] = new_time
                 new_post.setdefault('new_state', True)
 
-                obj[post_type]['islands'][islands_count - substraction_index]['posts'].append(new_post)
-                obj[post_type]['islands'][islands_count - substraction_index]['new_posts_count'] = obj[post_type]['islands'][islands_count - substraction_index]['new_posts_count'] + 1
+                print(f'Новый пост 2. время {new_post["time"]}, рейтинг {new_post["rating"]}')
+                print(f'Искать в {post_type} под номером {obj[post_type]["islands"][index]["number"]}')
 
-                if obj[post_type]['islands'][islands_count - 1]['new_posts_count'] >= NEW_POSTS_COUNT_TO_UNION:
-                    pass
+                obj[post_type]['islands'][index]['posts'].append(new_post)
+                obj[post_type]['islands'][index]['new_post_count'] = obj[post_type]['islands'][index]['new_post_count'] + 1
 
-                obj[post_type]['islands'][islands_count - 1]['posts'].sort(key=lambda x: x['time'])
+                if obj[post_type]['islands'][index]['new_post_count'] >= NEW_POSTS_COUNT_TO_UNION:
+                    save_new_island(index)
 
+                obj[post_type]['islands'][index]['posts'].sort(key=lambda x: x['time'])
 
-            elif islands_count == 1:
-                if len(obj[post_type]['new_islands']) == 0:
-                    s = random.randint(1, 5)
-
-                    cur_island_posts = obj[post_type]['islands'][0]['posts']
-                    max_t = cur_island_posts[len(cur_island_posts) - 1]['time']
-                    min_t = cur_island_posts[0]['time']
-                
-                    island = {
-                        'number': obj[post_type]['upper_name'],
-                        'posts': [],
-                        'new_post_count': 0,
-                        'new_time': self.get_correct_time_addition(max_t, s * HOUR),
-                        'new_state': True
-                    }
-                    obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
-                    obj[post_type]['new_islands'].append(island)
-
-                    island = {
-                        'number': obj[post_type]['upper_name'],
-                        'posts': [],
-                        'new_post_count': 0,
-                        'new_time': self.get_correct_time_addition(min_t, s * HOUR, -1),
-                        'new_state': True
-                    }
-                    obj[post_type]['upper_name'] = obj[post_type]['upper_name'] + 1
-                    obj[post_type]['new_islands'].append(island)
-                
-                min_t = 0
-                max_t = 0
-                if self.make_choise(PERCENT):
-                    island_base_time = obj[post_type]['new_islands'][0]['new_time']
-                    if self.make_choise(CHANSE_OF_BORDER_TIME):
-                        min_t = self.get_correct_time_addition(island_base_time, 5 * MINUTE, -1)
-                        max_t = island_base_time
-                    else:
-                        min_t = island_base_time
-                        max_t = self.get_correct_time_addition(island_base_time, 5 * MINUTE)
-
-                    new_time = random.randint(min_t, max_t)
-                    new_post = self.create_real_post()
-                    new_post['time'] = new_time
-                    new_post.setdefault('new_state', True)
-                    obj[post_type]['new_islands'][0]['posts'].append(new_post)
-                    obj[post_type]['new_islands'][0]['new_posts'] = obj[post_type]['new_islands'][0]['new_posts'] + 1
-                else:
-                    top1_island_posts = obj[post_type]['islands'][0]['posts']
-                    density = self.get_posts_density(top1_island_posts)
-                    
-                    min_t = top1_island_posts[0]['time']
-                    max_t = top1_island_posts[len(top1_island_posts) - 1]['time']
-                    if density < DENSITY_BORDER:
-                        if self.make_choise(CHANSE_OF_BORDER_TIME):
-                            max_t = min_t
-                            min_t = self.get_correct_time_addition(min_t, 5 * MINUTE, -1)
-                        else:
-                            min_t = max_t
-                            max_t = self.get_correct_time_addition(max_t, 5 * MINUTE)
-
-                    new_time = random.randint(min_t, max_t)
-                    new_post = self.create_real_post()
-                    new_post['time'] = new_time
-                    new_post.setdefault('new_state', True)
-                    obj[post_type]['islands'][0]['new_posts'] = obj[post_type]['islands'][0]['new_posts'] + 1
-            else:
-                pass
+            self.__objects.setdefault(vk_login, obj)
+            with open('./posts.json', 'w') as f:
+                json.dump(self.__objects.get(vk_login), f, indent='\t')
+                f.close()
 
     def init_example_posts(self):
         pass
 
 s = RecSys()
+vk_login = '89604860309'
+types = ['text', ] #'attachement', 'image'
+# инициализация через генерацию новых публикаций
 # posts = s.create_real_posts(count=20)
 # selected_posts = s.create_elements_selection(posts)
-# pprint(s.create_islands_obj(selected_posts))
+# s.init_user_object(vk_login, s.create_islands_obj(selected_posts))
+# s.dump_user_object(vk_login, 'etalon')
+
+# инициализация полностью пустым списком публикаций
+# s.init_user_object(vk_login, OBJ)
+# s.dump_user_object(vk_login, 'etalon2')
+
+# перезапись эталона 1
+# s.load_user_object(vk_login, 'etalon')
+# s.sort_islands_by_rating(vk_login)
+# s.dump_user_object(vk_login, 'posts')
+
+# перезапись эталона 2
+# s.load_user_object(vk_login, 'etalon2')
+# s.sort_islands_by_rating(vk_login)
+# s.dump_user_object(vk_login, 'posts')
+
+# генерация нового времени публикации
+# s.load_user_object(vk_login, 'posts')
+# current_rec_type = types[random.randint(0, len(types) - 1)]
+# print(current_rec_type)
+# s.make_recommendation(vk_login, current_rec_type)
